@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "CursedCityCharacter.h"
+#include "Player/Character/CursedCityCharacter.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -138,3 +138,15 @@ void ACursedCityCharacter::MoveRight(float Value)
 		AddMovementInput(Direction, Value);
 	}
 }
+
+void ACursedCityCharacter::StartUseWeapon()
+{
+	
+}
+
+void ACursedCityCharacter::StopUseWeapon()
+{
+	
+}
+
+
