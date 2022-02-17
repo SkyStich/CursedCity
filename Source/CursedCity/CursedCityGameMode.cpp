@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "CursedCityGameMode.h"
-#include "CursedCityCharacter.h"
+#include "Public/Player/Character/CursedCityCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 ACursedCityGameMode::ACursedCityGameMode()
