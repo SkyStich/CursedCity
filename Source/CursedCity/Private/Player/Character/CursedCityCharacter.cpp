@@ -1,13 +1,16 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Player/Character/CursedCityCharacter.h"
-#include "HeadMountedDisplayFunctionLibrary.h"
+
+#include "DrawDebugHelpers.h"
+#include "Player/Components/WeaponManagerComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Weapons/Base/BaseWeaponObject.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ACursedCityCharacter
@@ -43,12 +46,8 @@ ACursedCityCharacter::ACursedCityCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+	WeaponManagerComponent = CreateDefaultSubobject<UWeaponManagerComponent>(TEXT("WeaponManagerComponent"));
 }
-
-//////////////////////////////////////////////////////////////////////////
-// Input
 
 void ACursedCityCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -57,45 +56,18 @@ void ACursedCityCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
+	PlayerInputComponent->BindAction("Interaction", IE_Released, this, &ACursedCityCharacter::PressInteraction);
+
 	PlayerInputComponent->BindAxis("MoveForward", this, &ACursedCityCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ACursedCityCharacter::MoveRight);
+	
+	PlayerInputComponent->BindAction("UseWeapon", IE_Pressed, this, &ACursedCityCharacter::StartUseWeapon);
+	PlayerInputComponent->BindAction("UseWeapon", IE_Released, this, &ACursedCityCharacter::StopUseWeapon);
 
-	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
-	// "turn" handles devices that provide an absolute delta, such as a mouse.
-	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("TurnRate", this, &ACursedCityCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ACursedCityCharacter::LookUpAtRate);
-
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &ACursedCityCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &ACursedCityCharacter::TouchStopped);
-
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ACursedCityCharacter::OnResetVR);
-}
-
-
-void ACursedCityCharacter::OnResetVR()
-{
-	// If CursedCity is added to a project via 'Add Feature' in the Unreal Editor the dependency on HeadMountedDisplay in CursedCity.Build.cs is not automatically propagated
-	// and a linker error will result.
-	// You will need to either:
-	//		Add "HeadMountedDisplay" to [YourProject].Build.cs PublicDependencyModuleNames in order to build successfully (appropriate if supporting VR).
-	// or:
-	//		Comment or delete the call to ResetOrientationAndPosition below (appropriate if not supporting VR)
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void ACursedCityCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		Jump();
-}
-
-void ACursedCityCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		StopJumping();
 }
 
 void ACursedCityCharacter::TurnAtRate(float Rate)
@@ -141,12 +113,41 @@ void ACursedCityCharacter::MoveRight(float Value)
 
 void ACursedCityCharacter::StartUseWeapon()
 {
-	
+	ABaseWeaponObject* CurrentWeapon = WeaponManagerComponent->GetCurrentWeapon();
+	if(CurrentWeapon)
+	{
+		CurrentWeapon->UseWeapon();
+	}
 }
 
 void ACursedCityCharacter::StopUseWeapon()
 {
-	
+	ABaseWeaponObject* CurrentWeapon = WeaponManagerComponent->GetCurrentWeapon();
+	if(CurrentWeapon)
+	{
+		CurrentWeapon->StopUseWeapon();
+	}
 }
 
+FHitResult ACursedCityCharacter::GetHitResultForInteraction()
+{
+	/** @todo rewrite the logic for finding an object to interact with it */
 
+	FVector const TraceStart = FollowCamera->GetComponentLocation();
+	FVector const TraceEnd = FollowCamera->GetForwardVector() * 1200.f + TraceStart;
+
+	FHitResult OutHit;
+
+	GetWorld()->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility);
+	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Green, false, 1.f);
+	return OutHit;
+}
+
+void ACursedCityCharacter::PressInteraction()
+{
+	FHitResult const OutHit = GetHitResultForInteraction();
+	if(!OutHit.GetActor()) return;
+	if(!OutHit.GetActor()->GetClass()->ImplementsInterface(UInteractionWithObjectInterface::StaticClass())) return;
+
+	IInteractionWithObjectInterface::Execute_InteractionWithObject(OutHit.GetActor(), this);
+}

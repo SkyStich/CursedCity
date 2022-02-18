@@ -6,6 +6,10 @@
 #include "GameFramework/Character.h"
 #include "CursedCityCharacter.generated.h"
 
+class UWeaponManagerComponent;
+class USpringArmComponent;
+class UCameraComponent;
+
 UCLASS(config=Game)
 class ACursedCityCharacter : public ACharacter
 {
@@ -21,19 +25,25 @@ private:
 	UFUNCTION()
 	void StopUseWeapon();
 
+	UFUNCTION()
+	FHitResult GetHitResultForInteraction();
+
+	UFUNCTION()
+	void PressInteraction();
+
 public:
 	
 	ACursedCityCharacter();
 
+	/** returns WeaponManagerComponent subobject */
+	FORCEINLINE UWeaponManagerComponent* GetWeaponManagerComponent() const { return WeaponManagerComponent; }
+
 	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 protected:
-
-	/** Resets HMD orientation in VR. */
-	void OnResetVR();
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);
@@ -53,12 +63,6 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-	/** Handler for when a touch input begins. */
-	void TouchStarted(ETouchIndex::Type FingerIndex, FVector Location);
-
-	/** Handler for when a touch input stops. */
-	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
-
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
@@ -77,10 +81,13 @@ private:
 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
+	USpringArmComponent* CameraBoom;
 
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
+	UCameraComponent* FollowCamera;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = WeaponManager, meta = (AllowPrivateAccess = "true"))
+	UWeaponManagerComponent* WeaponManagerComponent;
 };
 
