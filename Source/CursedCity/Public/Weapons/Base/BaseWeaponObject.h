@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interfaces/InteractionWithObjectInterface.h"
 #include "BaseWeaponObject.generated.h"
 
 UCLASS(Abstract)
-class CURSEDCITY_API ABaseWeaponObject : public AActor
+class CURSEDCITY_API ABaseWeaponObject : public AActor, public IInteractionWithObjectInterface
 {
 	GENERATED_BODY()
 	
@@ -20,6 +21,8 @@ public:
 	
 	/** causes the logic of stopping the use of weapons */
 	virtual void StopUseWeapon();
+
+	virtual void InteractionWithObject_Implementation(ACursedCityCharacter* Character) override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -45,4 +48,7 @@ private:
 	/** the time it takes for the weapon to return to its ready-to-use state */
 	UPROPERTY(EditDefaultsOnly, Category = "WeaponData")
 	float TimeBeforeUsed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Mesh", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* SkeletalMeshComponent;
 };

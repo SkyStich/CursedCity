@@ -2,12 +2,16 @@
 
 
 #include "Weapons/Base/BaseWeaponObject.h"
+#include "Player/Character/CursedCityCharacter.h"
+#include "Player/Components/WeaponManagerComponent.h"
 
 // Sets default values
 ABaseWeaponObject::ABaseWeaponObject()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+
+	SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 
 	TimeBeforeUsed = 1.f;
 }
@@ -42,5 +46,11 @@ void ABaseWeaponObject::StopRateDelay()
 void ABaseWeaponObject::StopUseWeapon()
 {
 	bWeaponUsed = false;
+}
+
+void ABaseWeaponObject::InteractionWithObject_Implementation(ACursedCityCharacter* Character)
+{
+	if(!Character) return;
+	Character->GetWeaponManagerComponent()->AddWeapon(this);
 }
 
