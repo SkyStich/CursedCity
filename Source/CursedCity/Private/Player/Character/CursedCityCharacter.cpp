@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Player/Character/CursedCityCharacter.h"
-
 #include "DrawDebugHelpers.h"
 #include "Player/Components/WeaponManagerComponent.h"
 #include "Camera/CameraComponent.h"
@@ -47,6 +46,13 @@ ACursedCityCharacter::ACursedCityCharacter()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	WeaponManagerComponent = CreateDefaultSubobject<UWeaponManagerComponent>(TEXT("WeaponManagerComponent"));
+}
+
+void ACursedCityCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	WeaponManagerComponent->OnCurrentWeaponChanged.AddDynamic(this, &ACursedCityCharacter::OnNewCurrentWeapon);
 }
 
 void ACursedCityCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -150,4 +156,12 @@ void ACursedCityCharacter::PressInteraction()
 	if(!OutHit.GetActor()->GetClass()->ImplementsInterface(UInteractionWithObjectInterface::StaticClass())) return;
 
 	IInteractionWithObjectInterface::Execute_InteractionWithObject(OutHit.GetActor(), this);
+}	
+
+void ACursedCityCharacter::OnNewCurrentWeapon(ABaseWeaponObject* Weapon)
+{
+	if(Weapon)
+	{
+		Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale,"SKT_RightWeaponPosition");
+	}
 }

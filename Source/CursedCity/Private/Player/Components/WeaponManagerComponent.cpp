@@ -30,7 +30,7 @@ ACursedCityCharacter* UWeaponManagerComponent::GetCharacterOwner() const
 EWeaponSlot UWeaponManagerComponent::FindSlotForAdd()
 {
 	if(Weapons.Num() <= 0) return EWeaponSlot::First;
-	
+
 	/** get last enum index */
 	int32 const  LastIndex = int32(EWeaponSlot::Second);
 	if(LastIndex == Weapons.Num())
@@ -55,9 +55,23 @@ void UWeaponManagerComponent::AddWeapon(ABaseWeaponObject* WeaponObject)
 	
 	if(Weapons.FindRef(Slot))
 	{
-		Weapons.Remove(Slot);
+		RemoveWeaponFromStorage(Slot);
 	}
 	Weapons.Add(Slot, WeaponObject);
-	CurrentWeapon = WeaponObject;
+	WeaponObject->SetActorEnableCollision(false);
+	ChangeCurrentWeapon(WeaponObject);
 	OnWeaponAdded.Broadcast(Slot, WeaponObject);
+}
+
+void UWeaponManagerComponent::RemoveWeaponFromStorage(EWeaponSlot Key)
+{
+	if(Key == EWeaponSlot::None) return;
+
+	Weapons.Remove(Key);
+}
+
+void UWeaponManagerComponent::ChangeCurrentWeapon(ABaseWeaponObject* NewWeapon)
+{
+	CurrentWeapon = NewWeapon;
+	OnCurrentWeaponChanged.Broadcast(NewWeapon);
 }

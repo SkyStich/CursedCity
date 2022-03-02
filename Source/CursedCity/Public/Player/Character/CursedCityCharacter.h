@@ -9,6 +9,7 @@
 class UWeaponManagerComponent;
 class USpringArmComponent;
 class UCameraComponent;
+class ABaseWeaponObject;
 
 UCLASS(config=Game)
 class ACursedCityCharacter : public ACharacter
@@ -24,6 +25,9 @@ private:
 	/** Call on released stop weapon used (left mouse button default) */
 	UFUNCTION()
 	void StopUseWeapon();
+
+	UFUNCTION()
+	void OnNewCurrentWeapon(ABaseWeaponObject* Weapon);
 
 	UFUNCTION()
 	FHitResult GetHitResultForInteraction();
@@ -44,6 +48,8 @@ public:
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 protected:
+
+	virtual void BeginPlay() override;
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);

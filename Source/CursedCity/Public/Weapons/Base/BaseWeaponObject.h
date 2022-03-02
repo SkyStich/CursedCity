@@ -29,26 +29,27 @@ protected:
 	virtual void BeginPlay() override;
 
 	/** puts the weapon in a state where it is ready for use */
+	UFUNCTION()
 	virtual void StopRateDelay();
 
 	/** checks the terms of use of the weapon . Returns true if the weapon can be used */
 	virtual bool IsAbleToUseWeapon();
 
 protected:
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Mesh")
+	USkeletalMeshComponent* SkeletalMeshComponent;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon|Mesh")
 	bool bWeaponUsed;
-
-private:
-
+	
 	/** the timer is responsible for the transition of weapons from not ready to use to ready */
 	UPROPERTY()
 	FTimerHandle UseWeaponHandle;
 
+private:
+
 	/** the time it takes for the weapon to return to its ready-to-use state */
 	UPROPERTY(EditDefaultsOnly, Category = "WeaponData")
 	float TimeBeforeUsed;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Mesh", meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* SkeletalMeshComponent;
 };
